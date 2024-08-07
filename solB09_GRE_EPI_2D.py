@@ -46,7 +46,7 @@ gx_ = pp.make_trapezoid(channel='x', flat_area=-Nread, flat_time=0.2e-3, system=
 adc = pp.make_adc(num_samples=Nread, duration=0.2e-3, phase_offset=0 * np.pi / 180, delay=gx.rise_time, system=system)
 gx_pre = pp.make_trapezoid(channel='x', area=-gx.area / 2, duration=1e-3, system=system)
 gy_pre = pp.make_trapezoid(channel='y', area=-Nphase // 2, duration=1e-3, system=system)
-#gy_pre_2 = pp.make_trapezoid(channel='y', area=Nphase // 2, duration=1e-3, system=system)
+# gy_pre_2 = pp.make_trapezoid(channel='y', area=Nphase // 2, duration=1e-3, system=system)
 gp = pp.make_trapezoid(channel='y', area=1, duration=1e-3, system=system)
 gp_2= pp.make_trapezoid(channel='y', area=-1, duration=1e-3, system=system)
 
@@ -54,13 +54,21 @@ gp_2= pp.make_trapezoid(channel='y', area=-1, duration=1e-3, system=system)
 # CONSTRUCT SEQUENCE
 # ======
 seq.add_block(rf1)  # add rf1 with 90° flip_angle
+seq.add_block(pp.make_delay(50e-3))         #To increase the echo time
 seq.add_block(gx_pre, gy_pre)
+# seq.add_block(gx_pre, gy_pre_2)
 
 for ii in range(0, Nphase // 2):  # e.g. -64:63
+
+    # seq.add_block(adc, gx)
+    seq.add_block(adc,gx)
+    # seq.add_block(gx)
     
-    seq.add_block(adc, gx)
+ 
+    # seq.add_block(gp_2)
     seq.add_block(gp)
     seq.add_block(adc, gx_)
+    # seq.add_block(gp_2)
     seq.add_block(gp)
 
 
@@ -95,7 +103,7 @@ if 1:
 # Manipulate loaded data
     obj_p.T2dash[:] = 30e-3
     obj_p.D *= 0 
-    obj_p.B0 *= 0  # alter the B0 inhomogeneity
+    obj_p.B0 *= 1 # alter the B0 inhomogeneity
     # Store PD for comparison
     PD = obj_p.PD.squeeze()
     B0 = obj_p.B0.squeeze()
@@ -181,7 +189,7 @@ mr0.util.imshow(np.log(np.abs(kspace_adc)))
 plt.subplot(346)
 plt.title('FFT-magnitude')
 image=np.abs(space)
-plt.imsave('positive_phase_encoded_image.png',image)
+plt.imsave('negative_phase_encoded_image.png',image)
 mr0.util.imshow(image)
 plt.colorbar()
 plt.subplot(3, 4, 10)
